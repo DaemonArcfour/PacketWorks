@@ -43,6 +43,7 @@ command_token get_token(std::string const& cmd) {
 
 void CommandLine() {
 	raw_packet packet;
+	packet.adapter_address = new pcap_addr;
 	SetConsoleTextAttribute(color, 10);
 	puts(logo);
 	SetConsoleTextAttribute(color, 7);

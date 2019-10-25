@@ -2,6 +2,15 @@
 #include "g_include.h"
 #define MAX_PACKET_LENGTH 65535
 
+struct pseudo_header
+{
+	uint32_t source_address;
+	uint32_t dest_address;
+	uint8_t placeholder = 0;
+	uint8_t protocol;
+	uint16_t udp_length;
+};
+
 typedef struct eth_hdr
 {
 	UCHAR dest_mac[6]; //Total 48 bits
@@ -87,7 +96,7 @@ private:
 	bool initiated = false;
 public:
 	pcap_t* adapter;
-	pcap_addr* adapter_addresses;
+	pcap_addr* adapter_address;
 	bool craft_raw_packet();
 	void get_crafted_packet_hexdump();
 	int get_crafted_packet_size();
@@ -108,6 +117,7 @@ public:
 	void iphdr_set_total_len(int);
 	void iphdr_set_hdr_len(unsigned char);
 	void iphdr_set_ttl(unsigned char);
+	void iphdr_auto_checksum();
 	void iphdr_set_chksum(unsigned short);
 	void iphdr_set_proto(unsigned char);
 	void iphdr_set_dst_addr(const char*);

@@ -16,6 +16,11 @@
 									ZeroMemory(ip_header, sizeof(ip_hdr)); \
 								if(PROTO == IPPROTO_UDP)ZeroMemory(udp_header, sizeof(udp_hdr)); else ZeroMemory(tcp_header, sizeof(tcp_hdr));
 
+void mov_ptr_cpy(char** ptr, char* data, int len) {
+	memcpy(*ptr, data, len);
+	*ptr += len;
+}
+
 USHORT checksum(USHORT* buffer, int size)
 {
 	unsigned long cksum = 0;
@@ -88,7 +93,7 @@ void raw_packet::init_eth_layer() {
 	int gatewayip;
 	eth_header->type = htons(0x0800);
 	in_addr destip;
-	in_addr srcip = ((struct sockaddr_in*)adapter_addresses->addr)->sin_addr;
+	in_addr srcip = ((struct sockaddr_in*)adapter_address->addr)->sin_addr;
 	GetMacAddress(s_mac, srcip);
 	SUCCESS("Host's MAC: %.2X-%.2X-%.2X-%.2X-%.2X-%.2X\n", s_mac[0], s_mac[1], s_mac[2], s_mac[3], s_mac[4], s_mac[5]);
 
@@ -116,6 +121,11 @@ void raw_packet::iphdr_set_id(int id) {
 void raw_packet::iphdr_set_len(unsigned char len){
 	CHK_IP_INIT();
 	ip_header->ip_header_len = len;
+}
+
+void raw_packet::iphdr_auto_checksum() {
+	CHK_IP_INIT();
+	iphdr_set_chksum(checksum((USHORT*)ip_header, sizeof(ip_hdr)));
 }
 
 void raw_packet::iphdr_set_chksum(unsigned short chksum) {
@@ -183,15 +193,27 @@ void raw_packet::udphdr_set_len(int len) {
 }
 
 void raw_packet::udphdr_set_chksum(unsigned short chksum) {
-	udp_header->udp_checksum = htons(chksum);
+	udp_header->udp_checksum = chksum;
 }
 
 void raw_packet::udphdr_auto_checksum() {
 	CHK_DATA_INIT();
-	char tbuf[65535];
-	memcpy(tbuf, udp_header, sizeof(udp_header));
-	memcpy(tbuf + sizeof(udp_header), data, data_sz);
-	udphdr_set_chksum(checksum((USHORT*)tbuf, sizeof(udp_hdr) + data_sz));
+	int pseudogram_size = sizeof(udp_hdr) + get_data_size() + sizeof(pseudo_header);
+	pseudo_header *_psh = new pseudo_header;
+	_psh->dest_address = ip_header->ip_destaddr;
+	_psh->source_address = ip_header->ip_srcaddr;
+	_psh->placeholder = 0;
+	_psh->protocol = IPPROTO_UDP;
+	_psh->udp_length = udp_header->udp_length;
+	char* tbuf = new char[pseudogram_size];
+	char* ptr = nullptr;
+	memcpy(&ptr, &tbuf, sizeof(char*));
+	mov_ptr_cpy(&ptr, (char*)_psh, sizeof(pseudo_header));
+	mov_ptr_cpy(&ptr, (char*)udp_header, sizeof(udp_hdr));
+	mov_ptr_cpy(&ptr, data, data_sz);
+	udphdr_set_chksum(checksum((USHORT*)tbuf, sizeof(udp_hdr) + get_data_size() + sizeof(pseudo_header)));
+	delete[] _psh;
+	delete[] tbuf;
 }
 // TCP hdr
 
@@ -256,10 +278,6 @@ int raw_packet::get_data_size() {
 }
 
 // final assembly
-void mov_ptr_cpy(char** ptr, char* data, int len) {
-	memcpy(*ptr, data, len);
-	*ptr += len;
-}
 
 bool raw_packet::craft_raw_packet() {
 	/*
@@ -296,14 +314,17 @@ bool raw_packet::craft_raw_packet() {
 	crafted_packet = new char[crafted_packet_sz];
 	char* ptr = nullptr;
 	memcpy(&ptr, &crafted_packet, sizeof(char*));
-	
-	iphdr_set_total_len(crafted_packet_sz - sizeof(eth_hdr));
 	init_eth_layer();
+	iphdr_set_total_len(crafted_packet_sz - sizeof(eth_hdr));
+	iphdr_set_chksum(0); // remove previous checksum, to avoid miscalculation
+	iphdr_auto_checksum();
+	
 	mov_ptr_cpy(&ptr, (char*)eth_header, sizeof(eth_hdr));
 	mov_ptr_cpy(&ptr, (char*)ip_header, sizeof(ip_hdr));
 	if (iphdr_get_proto() == IPPROTO_UDP) {
-		udphdr_auto_checksum();
 		udphdr_set_len(crafted_packet_sz - (sizeof(ip_hdr) + sizeof(eth_hdr)));
+		udphdr_set_chksum(0);
+		udphdr_auto_checksum();
 		mov_ptr_cpy(&ptr, (char*)udp_header, sizeof(udp_hdr));
 	}
 	
