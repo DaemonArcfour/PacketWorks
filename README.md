@@ -21,9 +21,8 @@ Latest Npcap needs to be installed to run this.
 
 TO-DO:
  1. Generate a valid checksum for the TCP header.
- 2. Generate a valid checksum for the IP header.
- 3. Add a command to edit source MAC.
- 4. Add the ability to send multiple packets.
- 5. Clean up the code.
+ 2. Add a command to edit source MAC.
+ 3. Add the ability to send multiple packets.
+ 4. Clean up the code.
  
  **<!> To compile this you'll need Npcap SDK <!>**
