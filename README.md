@@ -9,7 +9,7 @@
 |set_packet_data|*Reads binary data into a raw packet payload buffer*|
 |set_source_ip|*Sets source IP*|
 |set_source_port|*Sets source port*|
-|set_destination_ip|*Sets destination ip*|
+|set_destination_ip|*Sets destination IP*|
 |set_destination_port|*Sets destination port*|
 |get_data_dump|*Prints out the payload buffer in hex*|
 |get_crafted_packet_dump|*Prints out the current raw packet in hex*|
