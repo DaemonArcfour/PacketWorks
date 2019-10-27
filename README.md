@@ -6,6 +6,7 @@
 |open_script|*Opens a script to read commands from (commands are separated by a line break)*|
 |init_raw_udp|*Creates a raw UDP packet template*|
 |init_raw_tcp|*Creates a raw TCP packet template*|
+|init_raw_packet|*Crafts your packet (this gets executed automatically when you send a packet)*|
 |set_packet_data|*Reads binary data into a raw packet payload buffer*|
 |set_source_ip|*Sets source IP*|
 |set_source_port|*Sets source port*|
