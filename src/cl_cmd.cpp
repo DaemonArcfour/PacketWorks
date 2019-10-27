@@ -3,6 +3,7 @@
 #define CHKARG if(CommandQueue.empty()){ WARNING("Too few arguments.") break;}
 HANDLE color = GetStdHandle(STD_OUTPUT_HANDLE);
 const char* help_msg =  "Available commands:\n"
+						"open_script <file>\n"
 						"init_raw_udp\n"
 						"init_raw_tcp\n"
 						"init_raw_packet\n"
@@ -14,7 +15,8 @@ const char* help_msg =  "Available commands:\n"
 						"get_data_dump\n"
 						"get_crafted_packet_dump\n"
 						"select_network_adapter\n"
-						"send_packet\n";
+						"send_packet\n"
+						"wait <ms> [For scripting only]\n";
 const char* logo =
 " _______  _     _  ____         _______\n"
 "|       || | _ | ||    |       |  _    |\n"
@@ -33,15 +35,34 @@ command_token get_token(std::string const& cmd) {
 	else if (cmd == "init_raw_tcp") return INIT_RAW_TCP;
 	else if (cmd == "init_raw_udp") return INIT_RAW_UDP;
 	else if (cmd == "init_raw_packet") return INIT_RAW_PACKET;
+	else if (cmd == "open_script") return CMD_OPEN_SCRIPT;
 	else if (cmd == "get_data_dump") return CMD_GET_DATA_DUMP;
 	else if (cmd == "get_crafted_packet_dump") return CMD_GET_CRAFTED_DUMP;
 	else if (cmd == "select_network_adapter") return CMD_SELECT_NETWORK_ADAPTER;
 	else if (cmd == "send_packet") return CMD_SEND_PACKET;
+	else if (cmd == "wait") return CMD_WAIT;
 	else if (cmd == "help") return CMD_HELP;
 	else return UNKNOWN;
 }
+void PW_OpenScript(const char* script_file, std::queue<std::string>& ScriptQueue) {
+	std::ifstream script(script_file);
+	if (!script.is_open()) {
+		WARNING("failed to open %s", script_file);
+		return;
+	}
+
+	std::string line;
+	int commands = 0;
+	while (std::getline(script, line)) {
+		ScriptQueue.push(line);
+		commands++;
+	}
+	SUCCESS("%d commands were loaded into a queue.", commands);
+	return;
+}
 
 void CommandLine() {
+	system("title PacketWorks v1.0");
 	raw_packet packet;
 	packet.adapter_address = new pcap_addr;
 	SetConsoleTextAttribute(color, 10);
@@ -54,11 +75,20 @@ void CommandLine() {
 	command_token token;
 	std::string PushCommand;
 	std::queue <std::string> CommandQueue;
+	std::queue <std::string> ScriptQueue;
 
 	while (true) {
-		SetConsoleTextAttribute(color, 15); printf("PW"); SetConsoleTextAttribute(color, 6); printf("1.0"); SetConsoleTextAttribute(color, 15); printf("@> "); SetConsoleTextAttribute(color, 10);
-		std::getline(std::cin, CommandBuffer);
-		SetConsoleTextAttribute(color, 7);
+		if (ScriptQueue.empty()) {
+			SetConsoleTextAttribute(color, 15); printf("PW"); SetConsoleTextAttribute(color, 6); printf("1.0"); SetConsoleTextAttribute(color, 15); printf("@> "); SetConsoleTextAttribute(color, 10);
+			std::getline(std::cin, CommandBuffer);
+			SetConsoleTextAttribute(color, 7);
+		}
+		
+		else {
+			CommandBuffer = ScriptQueue.front();
+			ScriptQueue.pop();
+		}
+
 		if (CommandBuffer.empty())
 			continue;
 		std::stringstream stream(CommandBuffer);
@@ -109,7 +139,9 @@ void CommandLine() {
 		case INIT_RAW_PACKET:
 			packet.craft_raw_packet();
 			break;
-
+		case CMD_OPEN_SCRIPT:
+			PW_OpenScript(CommandQueue.front().c_str(), ScriptQueue);
+			break;
 		case CMD_GET_DATA_DUMP:
 			packet.get_data_hexdump();
 			break;
@@ -129,7 +161,9 @@ void CommandLine() {
 		case CMD_HELP:
 			puts(help_msg);
 			break;
-
+		case CMD_WAIT:
+			Sleep(atoi(CommandQueue.front().c_str()));
+			break;
 		case UNKNOWN:
 			puts("unknown command");
 			break;

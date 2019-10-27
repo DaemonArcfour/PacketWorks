@@ -34,7 +34,7 @@ void WINPCAP_SelectDevice(raw_packet& packet) {
 
 	if (inum < 1 || inum > i)
 	{
-		printf("Interface number out of range.\n");
+		WARNING("Interface number out of range.\n");
 		/* Free the device list */
 		pcap_freealldevs(alldevs);
 		return;

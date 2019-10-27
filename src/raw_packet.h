@@ -8,7 +8,7 @@ struct pseudo_header
 	uint32_t dest_address;
 	uint8_t placeholder = 0;
 	uint8_t protocol;
-	uint16_t udp_length;
+	uint16_t proto_len;
 };
 
 typedef struct eth_hdr
@@ -134,10 +134,13 @@ public:
 
 	void tcphdr_set_src_port(int);
 	void tcphdr_set_dst_port(int);
-	void tcphdr_set_len(unsigned short);
 	void tcphdr_set_chksum(unsigned short);
+	void tcphdr_auto_checksum();
 	void tcphdr_set_seqnum(unsigned int);
+	void tcphdr_gen_seqnum();
 	void tcphdr_set_ack(unsigned int);
+	unsigned short tcphdr_get_len();
+
 
 	sockaddr_in get_dst_sockaddr_in() {
 		return dst_addr;

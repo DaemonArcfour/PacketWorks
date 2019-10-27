@@ -1,4 +1,7 @@
 #include "g_include.h"
+#include <stdlib.h>
+#include <time.h> 
+
 #define DEALLOC(ptr) if(##ptr != nullptr){ delete[] ##ptr; ##ptr = nullptr;}
 #define CHK_IP_INIT(...)	 if(ip_header == nullptr){WARNING("the protocol wasn't initialized."); return __VA_ARGS__;}
 #define CHK_UDP_INIT(...) CHK_IP_INIT(__VA_ARGS__) if(udp_header == nullptr){WARNING("UDP packet wasn't initialized."); return __VA_ARGS__;}
@@ -125,6 +128,7 @@ void raw_packet::iphdr_set_len(unsigned char len){
 
 void raw_packet::iphdr_auto_checksum() {
 	CHK_IP_INIT();
+	iphdr_set_chksum(0);
 	iphdr_set_chksum(checksum((USHORT*)ip_header, sizeof(ip_hdr)));
 }
 
@@ -198,13 +202,15 @@ void raw_packet::udphdr_set_chksum(unsigned short chksum) {
 
 void raw_packet::udphdr_auto_checksum() {
 	CHK_DATA_INIT();
+	udphdr_set_len(sizeof(udp_hdr) + get_data_size());
+	udphdr_set_chksum(0);
 	int pseudogram_size = sizeof(udp_hdr) + get_data_size() + sizeof(pseudo_header);
 	pseudo_header *_psh = new pseudo_header;
 	_psh->dest_address = ip_header->ip_destaddr;
 	_psh->source_address = ip_header->ip_srcaddr;
 	_psh->placeholder = 0;
 	_psh->protocol = IPPROTO_UDP;
-	_psh->udp_length = udp_header->udp_length;
+	_psh->proto_len = udp_header->udp_length;
 	char* tbuf = new char[pseudogram_size];
 	char* ptr = nullptr;
 	memcpy(&ptr, &tbuf, sizeof(char*));
@@ -216,6 +222,45 @@ void raw_packet::udphdr_auto_checksum() {
 	delete[] tbuf;
 }
 // TCP hdr
+void raw_packet::tcphdr_set_ack(unsigned int ack) {
+	tcp_header->ack = ack; // This is unobtainable with spoofed source address, I didn't bother to implement that.
+}
+
+void raw_packet::tcphdr_gen_seqnum() {
+	srand(time(NULL));
+	tcphdr_set_seqnum(rand() % INT_MAX);
+}
+
+void raw_packet::tcphdr_set_seqnum(unsigned int seq) {
+	tcp_header->sequence = seq;
+}
+
+void raw_packet::tcphdr_set_chksum(unsigned short chksum) {
+	tcp_header->checksum = chksum;
+}
+
+void raw_packet::tcphdr_auto_checksum() {
+	CHK_DATA_INIT();
+	tcphdr_set_chksum(0);
+	tcp_header->window = htons(155);
+	tcp_header->psh = 1;
+	int pseudogram_size = sizeof(tcp_hdr) + get_data_size() + sizeof(pseudo_header);
+	pseudo_header* _psh = new pseudo_header;
+	_psh->dest_address = ip_header->ip_destaddr;
+	_psh->source_address = ip_header->ip_srcaddr;
+	_psh->placeholder = 0;
+	_psh->protocol = IPPROTO_TCP;
+	_psh->proto_len = tcphdr_get_len();
+	char* tbuf = new char[pseudogram_size];
+	char* ptr = nullptr;
+	memcpy(&ptr, &tbuf, sizeof(char*));
+	mov_ptr_cpy(&ptr, (char*)_psh, sizeof(pseudo_header));
+	mov_ptr_cpy(&ptr, (char*)tcp_header, sizeof(tcp_hdr));
+	mov_ptr_cpy(&ptr, data, data_sz);
+	tcphdr_set_chksum(checksum((USHORT*)tbuf, sizeof(tcp_hdr) + get_data_size() + sizeof(pseudo_header)));
+	delete[] _psh;
+	delete[] tbuf;
+}
 
 void raw_packet::tcphdr_set_src_port(int port) {
 	src_addr.sin_port = htons(port);
@@ -227,6 +272,10 @@ void raw_packet::tcphdr_set_dst_port(int port) {
 	src_addr.sin_port = htons(port);
 	tcp_header->dest_port = src_addr.sin_port;
 	SUCCESS("switched TCP destination port to %d", port);
+}
+
+unsigned short raw_packet::tcphdr_get_len() {
+	return htons(sizeof(tcp_hdr) + get_data_size());
 }
 
 // Data management
@@ -316,20 +365,19 @@ bool raw_packet::craft_raw_packet() {
 	memcpy(&ptr, &crafted_packet, sizeof(char*));
 	init_eth_layer();
 	iphdr_set_total_len(crafted_packet_sz - sizeof(eth_hdr));
-	iphdr_set_chksum(0); // remove previous checksum, to avoid miscalculation
 	iphdr_auto_checksum();
 	
 	mov_ptr_cpy(&ptr, (char*)eth_header, sizeof(eth_hdr));
 	mov_ptr_cpy(&ptr, (char*)ip_header, sizeof(ip_hdr));
 	if (iphdr_get_proto() == IPPROTO_UDP) {
-		udphdr_set_len(crafted_packet_sz - (sizeof(ip_hdr) + sizeof(eth_hdr)));
-		udphdr_set_chksum(0);
 		udphdr_auto_checksum();
 		mov_ptr_cpy(&ptr, (char*)udp_header, sizeof(udp_hdr));
 	}
 	
-	if (iphdr_get_proto() == IPPROTO_TCP)
+	if (iphdr_get_proto() == IPPROTO_TCP) {
+		tcphdr_auto_checksum();
 		mov_ptr_cpy(&ptr, (char*)tcp_header, sizeof(tcp_hdr));
+	}
 	mov_ptr_cpy(&ptr, data, get_data_size());
 	SUCCESS("raw packet successfully crafted.");
 	return true;
