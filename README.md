@@ -1,5 +1,5 @@
 ## PWv1.0
-![Command line](http://0x0.st/zYT0.png)
+![Command line](https://0x0.st/zYMn.png)
 
 |Command| Description|
 |--|--|
@@ -10,6 +10,7 @@
 |set_packet_data|*Reads binary data into a raw packet payload buffer*|
 |set_source_ip|*Sets source IP*|
 |set_source_port|*Sets source port*|
+|gen_rand_source_info|*Generates random source IP/port combination*|
 |set_destination_ip|*Sets destination IP*|
 |set_destination_port|*Sets destination port*|
 |get_data_dump|*Prints out the payload buffer in hex*|
