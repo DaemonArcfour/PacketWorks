@@ -1,5 +1,5 @@
 ## PWv1.0
-![Command line](https://0x0.st/zYMn.png)
+![Command line](https://0x0.st/zYMd.png)
 
 |Command| Description|
 |--|--|
