@@ -3,9 +3,9 @@
 #include <time.h> 
 
 #define DEALLOC(ptr) if(##ptr != nullptr){ delete[] ##ptr; ##ptr = nullptr;}
-#define CHK_IP_INIT(...)	 if(ip_header == nullptr){WARNING("the protocol wasn't initialized."); return __VA_ARGS__;}
-#define CHK_UDP_INIT(...) CHK_IP_INIT(__VA_ARGS__) if(udp_header == nullptr){WARNING("UDP packet wasn't initialized."); return __VA_ARGS__;}
-#define CHK_TCP_INIT(...) CHK_IP_INIT(__VA_ARGS__) if(tcp_header == nullptr){WARNING("TCP packet wasn't initialized."); return __VA_ARGS__;}
+#define CHK_IP_INIT(...) if(ip_header == nullptr){WARNING("the protocol wasn't initialized."); return __VA_ARGS__;}
+#define CHK_UDP_INIT(...) if(udp_header == nullptr){WARNING("UDP packet wasn't initialized."); return __VA_ARGS__;}
+#define CHK_TCP_INIT(...) if(tcp_header == nullptr){WARNING("TCP packet wasn't initialized."); return __VA_ARGS__;}
 #define CHK_DATA_INIT(...) if(data == nullptr || data_sz == NULL){WARNING("data is empty."); return __VA_ARGS__;}
 #define DISABLE_PACKET_FRAGMENTATION 	ip_header->ip_dont_fragment = 1;\
 										ip_header->ip_frag_offset = 0;\
@@ -43,19 +43,19 @@ USHORT checksum(USHORT* buffer, int size)
 
 void raw_packet::dealloc_mem() {
 	if (eth_header != nullptr) {
-		WARNING("deallocating %d bytes used by the ETH header", sizeof(eth_hdr));
+		WARNING("deallocating %d bytes used by the ETH header.", sizeof(eth_hdr));
 	}
 	DEALLOC(eth_header);
 	if (ip_header != nullptr) {
-		WARNING("deallocating %d bytes used by the IP header", sizeof(ip_hdr));
+		WARNING("deallocating %d bytes used by the IP header.", sizeof(ip_hdr));
 	}
 	DEALLOC(ip_header);
 	if (udp_header != nullptr) {
-		WARNING("deallocating %d bytes used by the UDP header", sizeof(udp_hdr));
+		WARNING("deallocating %d bytes used by the UDP header.", sizeof(udp_hdr));
 	}
 	DEALLOC(udp_header);
 	if (tcp_header != nullptr) {
-		WARNING("deallocating %d bytes used by the TCP header", sizeof(tcp_hdr));
+		WARNING("deallocating %d bytes used by the TCP header.", sizeof(tcp_hdr));
 	}
 	DEALLOC(tcp_header);
 
@@ -74,6 +74,7 @@ void raw_packet::init_raw_tcp() {
 	SET_DEFAULT_INTERNET_PROTOCOL_VALUES
 	DISABLE_PACKET_FRAGMENTATION
 	SUCCESS("allocated %d bytes for the raw TCP packet", sizeof(eth_hdr) + sizeof(ip_hdr) + sizeof(tcp_hdr))
+	initialized = true;
 }
 
 void raw_packet::init_raw_udp() {
@@ -88,6 +89,7 @@ void raw_packet::init_raw_udp() {
 	SET_DEFAULT_INTERNET_PROTOCOL_VALUES
 	DISABLE_PACKET_FRAGMENTATION
 	SUCCESS("allocated %d bytes for the raw UDP packet", sizeof(eth_hdr) + sizeof(ip_hdr) + sizeof(udp_hdr))
+	initialized = true;
 }
 // Eth hdr
 void raw_packet::init_eth_layer() {
@@ -181,22 +183,26 @@ unsigned char raw_packet::iphdr_get_proto() {
 // UDP hdr
 
 void raw_packet::udphdr_set_src_port(int port) {
+	CHK_UDP_INIT();
 	src_addr.sin_port = htons(port);
 	udp_header->src_portno = src_addr.sin_port;
 	SUCCESS("switched UDP source port to %d", port);
 }
 
 void raw_packet::udphdr_set_dst_port(int port) {
+	CHK_UDP_INIT();
 	dst_addr.sin_port = htons(port);
 	udp_header->dst_portno = dst_addr.sin_port;
 	SUCCESS("switched UDP destination port to %d", port);
 }
 
 void raw_packet::udphdr_set_len(int len) {
+	CHK_UDP_INIT();
 	udp_header->udp_length = htons(len); // self + payload
 }
 
 void raw_packet::udphdr_set_chksum(unsigned short chksum) {
+	CHK_UDP_INIT();
 	udp_header->udp_checksum = chksum;
 }
 
@@ -223,24 +229,28 @@ void raw_packet::udphdr_auto_checksum() {
 }
 // TCP hdr
 void raw_packet::tcphdr_set_ack(unsigned int ack) {
+	CHK_TCP_INIT();
 	tcp_header->ack = ack; // This is unobtainable with spoofed source address, I didn't bother to implement that.
 }
 
 void raw_packet::tcphdr_gen_seqnum() {
-	srand(time(NULL));
+	CHK_TCP_INIT();
 	tcphdr_set_seqnum(rand() % INT_MAX);
 }
 
 void raw_packet::tcphdr_set_seqnum(unsigned int seq) {
+	CHK_TCP_INIT();
 	tcp_header->sequence = seq;
 }
 
 void raw_packet::tcphdr_set_chksum(unsigned short chksum) {
+	CHK_TCP_INIT();
 	tcp_header->checksum = chksum;
 }
 
 void raw_packet::tcphdr_auto_checksum() {
 	CHK_DATA_INIT();
+	CHK_TCP_INIT();
 	tcphdr_set_chksum(0);
 	tcp_header->window = htons(155);
 	tcp_header->psh = 1;
@@ -263,18 +273,21 @@ void raw_packet::tcphdr_auto_checksum() {
 }
 
 void raw_packet::tcphdr_set_src_port(int port) {
+	CHK_TCP_INIT();
 	src_addr.sin_port = htons(port);
 	tcp_header->source_port = src_addr.sin_port;
 	SUCCESS("switched TCP source port to %d", port);
 }
 
 void raw_packet::tcphdr_set_dst_port(int port) {
+	CHK_TCP_INIT();
 	src_addr.sin_port = htons(port);
 	tcp_header->dest_port = src_addr.sin_port;
 	SUCCESS("switched TCP destination port to %d", port);
 }
 
 unsigned short raw_packet::tcphdr_get_len() {
+	CHK_TCP_INIT(0);
 	return htons(sizeof(tcp_hdr) + get_data_size());
 }
 

@@ -1,5 +1,6 @@
 ﻿#include "g_include.h"
-
+#define RAND_SUBNET rand()%255+1
+#define RAND_PORT rand()%65535+1
 #define CHKARG if(CommandQueue.empty()){ WARNING("Too few arguments.") break;}
 HANDLE color = GetStdHandle(STD_OUTPUT_HANDLE);
 const char* help_msg =  "Available commands:\n"
@@ -10,6 +11,7 @@ const char* help_msg =  "Available commands:\n"
 						"set_packet_data <file>\n"
 						"set_source_ip <ip>\n"
 						"set_source_port <port>\n"
+						"gen_rand_source_info\n"
 						"set_destination_ip <ip>\n"
 						"set_destination_port <port>\n"
 						"get_data_dump\n"
@@ -30,6 +32,7 @@ command_token get_token(std::string const& cmd) {
 	if (cmd == "set_packet_data") return SET_PACKET_DATA;
 	else if (cmd == "set_source_ip") return SET_SOURCE_IP;
 	else if (cmd == "set_destination_ip") return SET_DESTINATION_IP;
+	else if (cmd == "gen_rand_source_info") return GEN_RAND_SOURCE_INFO;
 	else if (cmd == "set_source_port") return SET_SOURCE_PORT;
 	else if (cmd == "set_destination_port") return SET_DESTINATION_PORT;
 	else if (cmd == "init_raw_tcp") return INIT_RAW_TCP;
@@ -62,6 +65,7 @@ void PW_OpenScript(const char* script_file, std::queue<std::string>& ScriptQueue
 }
 
 void CommandLine() {
+	srand(time(NULL));
 	system("title PacketWorks v1.0");
 	raw_packet packet;
 	packet.adapter_address = new pcap_addr;
@@ -119,7 +123,19 @@ void CommandLine() {
 			else
 				packet.tcphdr_set_src_port(atoi(CommandQueue.front().c_str()));
 			break;
+		case GEN_RAND_SOURCE_INFO:
+			if (packet.initialized) {
+				if (packet.iphdr_get_proto() == IPPROTO_UDP)
+					packet.udphdr_set_src_port(RAND_PORT);
+				else
+					packet.tcphdr_set_src_port(RAND_PORT);
 
+				packet.iphdr_set_src_addr(std::string(std::to_string(RAND_SUBNET) + "." + std::to_string(RAND_SUBNET) + "." + std::to_string(RAND_SUBNET) + "." + std::to_string(RAND_SUBNET)).c_str());
+			}
+			else {
+				WARNING("init any type of raw packet first.");
+			}
+			break;
 		case SET_DESTINATION_PORT:
 			CHKARG
 			if (packet.iphdr_get_proto() == IPPROTO_UDP)

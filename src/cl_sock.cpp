@@ -5,6 +5,7 @@ void send_packet(raw_packet &packet) {
 	if (packet.craft_raw_packet()) {
 		if (packet.adapter == nullptr) {
 			WARNING("you didn't select a network adapter.");
+			return;
 		}
 
 		if (pcap_sendpacket(packet.adapter, reinterpret_cast<u_char*>(packet.get_crafted_packet()), packet.get_crafted_packet_size()) == 0) {

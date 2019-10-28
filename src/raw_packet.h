@@ -93,10 +93,10 @@ private:
 	int crafted_packet_sz = 0;
 	struct sockaddr_in src_addr;
 	struct sockaddr_in dst_addr;
-	bool initiated = false;
 public:
 	pcap_t* adapter;
 	pcap_addr* adapter_address;
+	bool initialized = false;
 	bool craft_raw_packet();
 	void get_crafted_packet_hexdump();
 	int get_crafted_packet_size();
