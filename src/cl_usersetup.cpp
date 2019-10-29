@@ -93,20 +93,7 @@ void raw_packet::init_raw_udp() {
 }
 // Eth hdr
 void raw_packet::init_eth_layer() {
-	u_char s_mac[6], d_mac[6];
-	char sgatewayip[16];
-	int gatewayip;
 	eth_header->type = htons(0x0800);
-	in_addr destip;
-	in_addr srcip = ((struct sockaddr_in*)adapter_address->addr)->sin_addr;
-	GetMacAddress(s_mac, srcip);
-	SUCCESS("Host's MAC: %.2X-%.2X-%.2X-%.2X-%.2X-%.2X\n", s_mac[0], s_mac[1], s_mac[2], s_mac[3], s_mac[4], s_mac[5]);
-
-	GetGateway(srcip, sgatewayip, &gatewayip);
-	destip.s_addr = gatewayip;
-
-	GetMacAddress(d_mac, destip);
-	SUCCESS("Reciever's MAC: %.2X-%.2X-%.2X-%.2X-%.2X-%.2X\n", d_mac[0], d_mac[1], d_mac[2], d_mac[3], d_mac[4], d_mac[5]);
 	memcpy(eth_header->source_mac, s_mac, 6);
 	memcpy(eth_header->dest_mac, d_mac, 6);
 }

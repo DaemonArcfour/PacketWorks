@@ -96,6 +96,8 @@ private:
 public:
 	pcap_t* adapter;
 	pcap_addr* adapter_address;
+	u_char s_mac[6];
+	u_char d_mac[6];
 	bool initialized = false;
 	bool craft_raw_packet();
 	void get_crafted_packet_hexdump();

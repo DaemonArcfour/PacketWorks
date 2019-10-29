@@ -1,4 +1,5 @@
 ﻿#include "g_include.h"
+bool dismsg = false;
 #define RAND_SUBNET rand()%255+1
 #define RAND_PORT rand()%65535+1
 #define CHKARG if(CommandQueue.empty()){ WARNING("Too few arguments.") break;}
@@ -17,6 +18,7 @@ const char* help_msg =  "Available commands:\n"
 						"get_data_dump\n"
 						"get_crafted_packet_dump\n"
 						"select_network_adapter\n"
+						"toggle_messages\n"
 						"send_packet\n"
 						"wait <ms> [For scripting only]\n";
 const char* logo =
@@ -43,6 +45,7 @@ command_token get_token(std::string const& cmd) {
 	else if (cmd == "get_crafted_packet_dump") return CMD_GET_CRAFTED_DUMP;
 	else if (cmd == "select_network_adapter") return CMD_SELECT_NETWORK_ADAPTER;
 	else if (cmd == "send_packet") return CMD_SEND_PACKET;
+	else if (cmd == "toggle_messages") return CMD_TGL_MSG;
 	else if (cmd == "wait") return CMD_WAIT;
 	else if (cmd == "help") return CMD_HELP;
 	else return UNKNOWN;
@@ -176,10 +179,16 @@ void CommandLine() {
 		
 		case CMD_HELP:
 			puts(help_msg);
+
 			break;
 		case CMD_WAIT:
 			Sleep(atoi(CommandQueue.front().c_str()));
 			break;
+
+		case CMD_TGL_MSG:
+			dismsg = !dismsg;
+			break;
+
 		case UNKNOWN:
 			puts("unknown command");
 			break;

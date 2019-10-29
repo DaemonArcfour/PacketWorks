@@ -37,10 +37,11 @@
 #pragma comment (lib, "Packet.lib")
 #pragma comment (lib, "iphlpapi.lib")
 
+extern bool dismsg;
 extern HANDLE color;
 
-#define SUCCESS(...) SetConsoleTextAttribute(color, 10); printf("["); SetConsoleTextAttribute(color, 2); printf("+"); SetConsoleTextAttribute(color, 10); printf("] "); SetConsoleTextAttribute(color, 15); \
-					 printf(__VA_ARGS__); SetConsoleTextAttribute(color, 7); printf("\n");
+#define SUCCESS(...) if(!dismsg){SetConsoleTextAttribute(color, 10); printf("["); SetConsoleTextAttribute(color, 2); printf("+"); SetConsoleTextAttribute(color, 10); printf("] "); SetConsoleTextAttribute(color, 15); \
+					 printf(__VA_ARGS__); SetConsoleTextAttribute(color, 7); printf("\n");}
 
-#define WARNING(...) SetConsoleTextAttribute(color, 14); printf("["); SetConsoleTextAttribute(color, 12); printf("!"); SetConsoleTextAttribute(color, 14); printf("] "); SetConsoleTextAttribute(color, 6); \
-					 printf(__VA_ARGS__); SetConsoleTextAttribute(color, 7); printf("\n");
+#define WARNING(...) if(!dismsg){SetConsoleTextAttribute(color, 14); printf("["); SetConsoleTextAttribute(color, 12); printf("!"); SetConsoleTextAttribute(color, 14); printf("] "); SetConsoleTextAttribute(color, 6); \
+					 printf(__VA_ARGS__); SetConsoleTextAttribute(color, 7); printf("\n");}
