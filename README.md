@@ -1,5 +1,5 @@
 ## PWv1.0
-![Command line](https://0x0.st/zYMd.png)
+![Command line](https://0x0.st/zY9P.png)
 
 |Command| Description|
 |--|--|
@@ -16,6 +16,7 @@
 |get_data_dump|*Prints out the payload buffer in hex*|
 |get_crafted_packet_dump|*Prints out the current raw packet in hex*|
 |select_network_adapter|*Selects a network adapter to use*|
+|toggle_messages|*Toggles Warning/Success messages (improves speed when executing large scripts)*|
 |send_packet|*Send the crafted packet*|
 |wait|*Executes "Sleep()" between commands (meant to be used for scripting)*|
 
@@ -25,7 +26,7 @@ Latest Npcap needs to be installed to run this.
 
 TO-DO:
  1. Add a command to edit source MAC.
- 3. Fix raw TCP packets.
- 2. Clean up the code.
+ 2. Fix raw TCP packets.
+ 3. Clean up the code.
  
  **<!> To compile this you'll need Npcap SDK <!>**
