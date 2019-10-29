@@ -64,11 +64,11 @@ void WINPCAP_SelectDevice(raw_packet& packet) {
 
 	in_addr srcip = ((struct sockaddr_in*)packet.adapter_address->addr)->sin_addr;
 	GetMacAddress(packet.s_mac, srcip);
-	SUCCESS("Host's MAC: %.2X-%.2X-%.2X-%.2X-%.2X-%.2X", packet.s_mac[0], packet.s_mac[1], packet.s_mac[2], packet.s_mac[3], packet.s_mac[4], packet.s_mac[5]);
+	SUCCESS("Host's MAC: %.2X:%.2X:%.2X:%.2X:%.2X:%.2X", packet.s_mac[0], packet.s_mac[1], packet.s_mac[2], packet.s_mac[3], packet.s_mac[4], packet.s_mac[5]);
 	GetGateway(srcip, sgatewayip, &gatewayip);
 	destip.s_addr = gatewayip;
 	GetMacAddress(packet.d_mac, destip);
-	SUCCESS("Gateway MAC: %.2X-%.2X-%.2X-%.2X-%.2X-%.2X", packet.d_mac[0], packet.d_mac[1], packet.d_mac[2], packet.d_mac[3], packet.d_mac[4], packet.d_mac[5]);
+	SUCCESS("Gateway MAC: %.2X:%.2X:%.2X:%.2X:%.2X:%.2X", packet.d_mac[0], packet.d_mac[1], packet.d_mac[2], packet.d_mac[3], packet.d_mac[4], packet.d_mac[5]);
 
 	std::fflush(stdin);
 	std::cin.clear();

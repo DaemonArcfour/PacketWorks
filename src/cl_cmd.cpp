@@ -12,6 +12,7 @@ const char* help_msg =  "Available commands:\n"
 						"set_packet_data <file>\n"
 						"set_source_ip <ip>\n"
 						"set_source_port <port>\n"
+						"set_source_mac <A1:B2:C3:D4:E5:F6>\n"
 						"gen_rand_source_info\n"
 						"set_destination_ip <ip>\n"
 						"set_destination_port <port>\n"
@@ -34,6 +35,7 @@ command_token get_token(std::string const& cmd) {
 	if (cmd == "set_packet_data") return SET_PACKET_DATA;
 	else if (cmd == "set_source_ip") return SET_SOURCE_IP;
 	else if (cmd == "set_destination_ip") return SET_DESTINATION_IP;
+	else if (cmd == "set_source_mac") return SET_SOURCE_MAC;
 	else if (cmd == "gen_rand_source_info") return GEN_RAND_SOURCE_INFO;
 	else if (cmd == "set_source_port") return SET_SOURCE_PORT;
 	else if (cmd == "set_destination_port") return SET_DESTINATION_PORT;
@@ -118,7 +120,10 @@ void CommandLine() {
 			CHKARG
 			packet.iphdr_set_dst_addr(CommandQueue.front().c_str());
 			break;
-
+		case SET_SOURCE_MAC:
+			CHKARG
+			ParseMAC(CommandQueue.front(), &packet.s_mac[0]);
+			break;
 		case SET_SOURCE_PORT:
 			CHKARG
 			if (packet.iphdr_get_proto() == IPPROTO_UDP)

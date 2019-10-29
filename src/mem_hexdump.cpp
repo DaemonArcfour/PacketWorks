@@ -1,4 +1,28 @@
 #include "mem_hexdump.h"
+#include <algorithm>
+
+void ParseMAC(std::string& mac_str, u_char* dst) {
+	std::queue<char> bytes;
+	mac_str.erase(std::remove(mac_str.begin(), mac_str.end(), ':'), mac_str.end());
+	for (unsigned int i = 0; i < mac_str.length(); i += 2) {
+		std::string byteString = mac_str.substr(i, 2);
+		char byte = (char)strtol(byteString.c_str(), NULL, 16);
+		bytes.push(byte);
+	}
+	if (bytes.size() != 6) {
+		WARNING("invalid MAC.");
+		return;
+	}
+
+	int index = 0;
+	while (!bytes.empty()) {
+		dst[index] = bytes.front();
+		bytes.pop();
+		index++;
+	}
+
+	SUCCESS("Host's MAC is now: %.2X:%.2X:%.2X:%.2X:%.2X:%.2X", dst[0], dst[1], dst[2], dst[3], dst[4], dst[5]);
+}
 
 void hexdump(unsigned char* data, unsigned int data_bytes)
 {
