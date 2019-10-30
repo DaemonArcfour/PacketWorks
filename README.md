@@ -27,6 +27,7 @@ Latest Npcap needs to be installed to run this.
 
 TO-DO:
  1. Fix raw TCP packets.
- 2. Clean up the code.
+ 2. Implement node mode to bypass NAT.
+ 3. Clean up the code.
  
  **<!> To compile this you'll need Npcap SDK <!>**
