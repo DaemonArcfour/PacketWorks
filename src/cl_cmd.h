@@ -2,7 +2,6 @@
 #include "g_include.h"
 
 void CommandLine();
-
 enum command_token {
 	INIT_RAW_TCP,
 	INIT_RAW_UDP,

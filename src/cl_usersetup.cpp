@@ -337,7 +337,7 @@ bool raw_packet::craft_raw_packet() {
 		*************
 		*  PROTOHDR *
 		*************
-		*	DATA	*
+		*   DATA    *
 		*************
 	*/
 	if (crafted_packet != nullptr) {

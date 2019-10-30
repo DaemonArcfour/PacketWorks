@@ -4,6 +4,7 @@ bool dismsg = false;
 #define RAND_PORT rand()%65535+1
 #define CHKARG if(CommandQueue.empty()){ WARNING("Too few arguments.") break;}
 HANDLE color = GetStdHandle(STD_OUTPUT_HANDLE);
+
 const char* help_msg =  "Available commands:\n"
 						"open_script <file>\n"
 						"init_raw_udp\n"
