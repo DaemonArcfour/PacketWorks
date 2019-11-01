@@ -1,4 +1,6 @@
 ﻿#include "g_include.h"
+#include "sv_node.h"
+#include "cl_node.h"
 bool dismsg = false;
 #define RAND_SUBNET rand()%255+1
 #define RAND_PORT rand()%65535+1
@@ -22,7 +24,13 @@ const char* help_msg =  "Available commands:\n"
 						"select_network_adapter\n"
 						"toggle_messages\n"
 						"send_packet\n"
-						"wait <ms> [For scripting only]\n";
+						"wait <ms> [For scripting only]\n"
+						"--------PWNode related stuff--------\n"
+						"start_node\n"
+						"stop_node\n"
+						"set_node_key <file>\n"
+						"set_remote_node <ip:port>\n"
+						"send_node_packet\n";
 const char* logo =
 " _______  _     _  ____         _______\n"
 "|       || | _ | ||    |       |  _    |\n"
@@ -51,6 +59,10 @@ command_token get_token(std::string const& cmd) {
 	else if (cmd == "toggle_messages") return CMD_TGL_MSG;
 	else if (cmd == "wait") return CMD_WAIT;
 	else if (cmd == "help") return CMD_HELP;
+	else if (cmd == "set_remote_node") return PWN_SET_REMOTE_NODE;
+	else if (cmd == "send_node_packet") return PWN_SEND_NODE_PACKET;
+	else if (cmd == "start_node") return PWN_START_NODE;
+	else if (cmd == "stop_node") return PWN_STOP_NODE;
 	else return UNKNOWN;
 }
 void PW_OpenScript(const char* script_file, std::queue<std::string>& ScriptQueue) {
@@ -74,6 +86,8 @@ void CommandLine() {
 	srand(time(NULL));
 	system("title PacketWorks v1.0");
 	raw_packet packet;
+	PW_Node_Client *PWNC = new PW_Node_Client;
+	bNode = false;
 	packet.adapter_address = new pcap_addr;
 	SetConsoleTextAttribute(color, 10);
 	puts(logo);
@@ -188,11 +202,41 @@ void CommandLine() {
 
 			break;
 		case CMD_WAIT:
+			CHKARG
 			Sleep(atoi(CommandQueue.front().c_str()));
 			break;
 
 		case CMD_TGL_MSG:
 			dismsg = !dismsg;
+			break;
+
+		case PWN_SET_REMOTE_NODE:
+			CHKARG
+			PWNC->PWNC_InitWinSock(CommandQueue.front());
+			break;
+
+		case PWN_SET_NODE_KEY:
+			CHKARG
+			PWNC->PWNC_SetCustomKey(CommandQueue.front());
+			break;
+
+		case PWN_SEND_NODE_PACKET:
+			PWNC->PWNC_SendPacket(&packet);
+			break;
+		
+		case PWN_START_NODE:
+			bNode.store(true);
+			std::thread(StartNode, &packet).detach();
+			break;
+
+		case PWN_STOP_NODE:
+			if (bNode.load() == true) {
+				WARNING("Node is pending for closing, receiving last packet!");
+				bNode.store(false);
+			}
+			else {
+				WARNING("Node is already set for closing.");
+			}
 			break;
 
 		case UNKNOWN:

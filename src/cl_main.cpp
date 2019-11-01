@@ -2,8 +2,6 @@
 
 int main()
 {
-	std::thread CommandLineThread(CommandLine);
-	while (true)
-		Sleep(1000);
+	CommandLine();
 	return 0;
 }
