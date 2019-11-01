@@ -1,5 +1,5 @@
 ## PWv1.0
-![Command line](https://0x0.st/zY95.png)
+![Command line](http://0x0.st/zYno.png)
 
 |Command| Description|
 |--|--|
@@ -20,6 +20,11 @@
 |toggle_messages|*Toggles Warning/Success messages (improves speed when executing large scripts)*|
 |send_packet|*Send the crafted packet*|
 |wait|*Executes "Sleep()" between commands (meant to be used for scripting)*|
+|start_node|*Starts a rerouting server, which sends raw packets*|
+|stop_node|*Stops the server*|
+|set_node_key|*Sets a route to the key for the node that you are going to use*|
+|set_remote_node|*Sets ip/port of the remote rerouting server*|
+|send_node_packet|*Sends raw packet data to the rerouting server*|
 
 **Right now it only fully supports raw UDP packets, I will add the support for raw TCP packets later.**
 
@@ -31,3 +36,16 @@ TO-DO:
  3. Clean up the code.
  
  **<!> To compile this you'll need Npcap SDK <!>**
+
+## FAQ
+
+>1. **My packets never arrive/source ip address gets overridden**<br>
+>You are probably behind NAT or your ISP is blocking your packets.
+>2. **What do I do then?**<br>
+>You need to install a node on a box that is directly connected to the line and doesn't have packet filtering.
+>3. **Where to find such a box?**<br>
+>Just search for a cheap VPS, you will eventually find the one you need. Or you could straight up buy a VPS that allows spoofing on countless dodgy forums.
+>4. **Is this legal?**<br>
+>Depends on what you will use that for.
+>5. **I don't see my network adapter in the list**<br>
+>You probably have WinPCap/Win10PCap installed. I highly suggest that you install NPcap instead.
