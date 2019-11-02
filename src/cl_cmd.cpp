@@ -61,6 +61,7 @@ command_token get_token(std::string const& cmd) {
 	else if (cmd == "help") return CMD_HELP;
 	else if (cmd == "set_remote_node") return PWN_SET_REMOTE_NODE;
 	else if (cmd == "send_node_packet") return PWN_SEND_NODE_PACKET;
+	else if (cmd == "set_node_key") return PWN_SET_NODE_KEY;
 	else if (cmd == "start_node") return PWN_START_NODE;
 	else if (cmd == "stop_node") return PWN_STOP_NODE;
 	else return UNKNOWN;

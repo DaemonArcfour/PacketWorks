@@ -10,10 +10,10 @@ private:
 	PW_Node_Info *NodeInfo;
 	sockaddr_in Remote_Node;
 	PW_DataBuffer PWNC_Buffer;
-	std::string PWNC_CustomKey = "pw_key.bin";
+	std::string PWNC_CustomKey;
 public:
 	void PWNC_InitWinSock(std::string pwn_host);
-	void PWNC_LoadKey(const char* keyFile);
+	void PWNC_LoadKey(const char* keyFile = "pw_key.bin");
 	void PWNC_SetRemoteHost(const char*);
 	void PWNC_SetRemotePort(int);
 	void PWNC_SendPacket(raw_packet *packet);

@@ -7,17 +7,25 @@ void PW_Node_Client::PWNC_InitWinSock(std::string pwn_host) {
 	}
 
 	NodeInfo = new PW_Node_Info;
-	PWNC_LoadKey(PWNC_CustomKey.c_str());
+	if (PWNC_CustomKey.empty())
+		PWNC_LoadKey();
+	else
+		PWNC_LoadKey(PWNC_CustomKey.c_str());
+
 	std::string RHostInfo;
 	std::stringstream RHostStream(pwn_host);
 	std::queue <std::string> Q_RHostInfo;
+	if (!strchr(pwn_host.c_str(), ':') || pwn_host.length() < 9 || pwn_host.length() > 21) {
+		WARNING_MT("[PWNC] Invalid host.");
+		return;
+	}
 	while (std::getline(RHostStream, RHostInfo, ':'))
 		Q_RHostInfo.push(RHostInfo);
 
 	PWNC_Buffer.PWD_InitBuffer(MAX_PACKET_LENGTH);
 	if (WSAStartup(MAKEWORD(2, 2), &WSA) != 0)
 	{
-		WARNING_MT("[PWNC] Error Code: % d", WSAGetLastError());
+		WARNING_MT("[PWNC] Error Code: %d", WSAGetLastError());
 		return;
 	}
 
@@ -41,6 +49,11 @@ void PW_Node_Client::PWNC_InitWinSock(std::string pwn_host) {
 
 void PW_Node_Client::PWNC_LoadKey(const char* keyFile) {
 	FILE* existingKey = fopen(keyFile, "rb");
+	if (!existingKey) {
+		WARNING_MT("[PWNC] %s wasn't found.", keyFile);
+		return;
+	}
+
 	fseek(existingKey, 0, SEEK_END);
 	int lSize = ftell(existingKey);
 	rewind(existingKey);

@@ -7,7 +7,7 @@ bool PW_Node::PWN_InitWinSock(uint16_t port) {
 	RPBuffer->PWD_InitBuffer(MAX_PACKET_LENGTH);
 	if (WSAStartup(MAKEWORD(2, 2), &WSA) != 0)
 	{
-		WARNING_MT("Error Code: % d", WSAGetLastError());
+		WARNING_MT("Error Code: %d", WSAGetLastError());
 		return false;
 	}
 
@@ -149,6 +149,7 @@ void PW_Node::PWN_NodeThread(raw_packet *glob_packet) {
 			PWN_ReceieveRPacket();
 		}
 	}
+	closesocket(PW_Socket);
 	delete[] DataBuffer;
 	delete[] RPBuffer;
 	WARNING_MT("Node closed.");
